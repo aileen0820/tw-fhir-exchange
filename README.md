@@ -18,24 +18,6 @@ Organization → Patient → Practitioner → Encounter(可選填入院診斷 �
                                           AI Agent 產生照護建議
 ```
 
-### 入院診斷（Condition）與 ICD-10-CM 病名自動查詢
-
-在步驟 4 建立 Encounter 時，可選填「入院診斷碼（ICD-10-CM）」與「診斷名稱」。
-
-**輸入診斷碼後會自動查詢對應病名**：
-- 英文名稱：查詢 [NLM Clinical Table Search Service](https://clinicaltables.nlm.nih.gov/)（美國國家醫學圖書館，免金鑰、公開的官方 ICD-10-CM 資料庫）
-- 中文名稱：由 Gemini API 將英文病名翻譯成臺灣醫療常用繁體中文（**AI 翻譯僅供參考**，非官方 ICD-10-CM 中文對照，正式病歷仍應以英文名稱為準）
-- 查到結果後可點「帶入」按鈕，快速把英文或中文病名填入「診斷名稱」欄位
-
-若有填寫診斷碼：
-1. 後端會先建立一筆 `Condition`（`category=encounter-diagnosis`, `code` 使用 ICD-10-CM），只需要 Patient
-   作為 subject，不需要 Encounter id，避免兩者互相引用的先後順序問題。
-2. 再建立 `Encounter`，於 `diagnosis[].condition.reference` 指向該 `Condition/id`，
-   `diagnosis[].use` 固定為 `AD`（Admission diagnosis，入院診斷，來自
-   `http://terminology.hl7.org/CodeSystem/diagnosis-role`）。
-
-前端會同時顯示 Condition 與 Encounter 兩張結果卡片（各自的 resourceType/id/HTTP 狀態）。
-
 每個 resource 建立後，畫面都會顯示：
 - `resourceType` / `id`（HAPI 回傳的 resource id）
 - HTTP 狀態（Created / Failed，以及原始 OperationOutcome）
@@ -99,6 +81,25 @@ npm run dev
 ```
 
 前端預設跑在 `http://localhost:5173`，Vite 已設定 proxy 將 `/api/*` 轉送至後端 3000 埠。
+
+### 入院診斷（Condition）與 ICD-10-CM 病名自動查詢
+
+在步驟 4 建立 Encounter 時，可選填「入院診斷碼（ICD-10-CM）」與「診斷名稱」。
+
+**輸入診斷碼後會自動查詢對應病名**：
+- 英文名稱：查詢 [NLM Clinical Table Search Service](https://clinicaltables.nlm.nih.gov/)（美國國家醫學圖書館，免金鑰、公開的官方 ICD-10-CM 資料庫）
+- 中文名稱：由 Gemini API 將英文病名翻譯成臺灣醫療常用繁體中文（**AI 翻譯僅供參考**，非官方 ICD-10-CM 中文對照，正式病歷仍應以英文名稱為準）
+- 查到結果後可點「帶入」按鈕，快速把英文或中文病名填入「診斷名稱」欄位
+
+若有填寫診斷碼：
+1. 後端會先建立一筆 `Condition`（`category=encounter-diagnosis`, `code` 使用 ICD-10-CM），只需要 Patient
+   作為 subject，不需要 Encounter id，避免兩者互相引用的先後順序問題。
+2. 再建立 `Encounter`，於 `diagnosis[].condition.reference` 指向該 `Condition/id`，
+   `diagnosis[].use` 固定為 `AD`（Admission diagnosis，入院診斷，來自
+   `http://terminology.hl7.org/CodeSystem/diagnosis-role`）。
+
+前端會同時顯示 Condition 與 Encounter 兩張結果卡片（各自的 resourceType/id/HTTP 狀態）。
+
 
 ## AI 照護建議 Agent
 
